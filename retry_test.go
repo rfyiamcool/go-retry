@@ -44,9 +44,26 @@ func TestPanic(t *testing.T) {
 	assert.ErrorContains(t, err, "haha")
 }
 
-func TestCtx(t *testing.T) {
+func TestContextTimeout(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
+
+	r := New(WithCtx(ctx))
+	err := r.Ensure(func() error {
+		t.Log(time.Now())
+		return RetriableMesg("haha")
+	})
+	assert.Equal(t, err, ctx.Err())
+}
+
+func TestContext(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	time.AfterFunc(
+		2*time.Second,
+		func() {
+			cancel()
+		},
+	)
 
 	r := New(WithCtx(ctx))
 	err := r.Ensure(func() error {

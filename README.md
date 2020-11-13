@@ -2,8 +2,9 @@
 
 retry func, ensure call finish. support retry count、timeout、context.
 
-- base delay
+- each delay time
 - backoff
+- timeout
 - times
 - context
 - recovery
@@ -12,7 +13,7 @@ retry func, ensure call finish. support retry count、timeout、context.
 
 example
 
-```
+```go
 package main
 
 import (
@@ -26,26 +27,38 @@ func main() {
 	r := retry.New()
 	var running = false
 	err := r.Ensure(func() error {
-		log.Println("enter")
 		if !running {
-			log.Println("111")
+			log.Println("to retry")
 			running = true
 			return retry.Retriable(errors.New("diy"))
 		}
 
-		log.Println("222")
+		log.Println("ok")
 		return nil
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
 }
-
 ```
 
-more usage from retry_test.go
+## more usage
 
-```
+usage from `retry_test.go`
+
+**func**
+
+- Ensure 
+- EnsureRetryTimes
+
+**options**
+
+- WithBaseDelay
+- WithBackoff
+- WithRecovery
+- WithCtx
+
+```go
 func TestBase(t *testing.T) {
 	r := New(WithRecovery(), WithBaseDelay(100*time.Millisecond))
 	err := r.EnsureRetryTimes(10, func() error {
